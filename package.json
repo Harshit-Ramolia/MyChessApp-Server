@@ -2,14 +2,18 @@
   "name": "server",
   "version": "1.0.0",
   "description": "server for chess application",
-  "main": "app.js",
+  "main": "index.js",
+  "type": "module",
   "scripts": {
-    "start": "node src/app.js",
-    "watch": "nodemon src/app.js"
+    "start": "node ./src/index.js",
+    "watch": "nodemon ./src/index.js"
   },
   "author": "Harshit Ramolia",
   "license": "ISC",
   "dependencies": {
+    "express": "^4.17.1",
+    "express-graphql": "^0.12.0",
+    "graphql": "^15.5.0",
     "nodemon": "^2.0.7"
   }
 }
