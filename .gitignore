@@ -1,0 +1,8 @@
+node_modules/
+.VSCodeCounter/
+.vscode/
+.env
+src/config/*.json
+target*
+.DS_Store
+dist/
