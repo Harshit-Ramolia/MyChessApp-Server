@@ -21,7 +21,7 @@ mongoose.connect(process.env.MONGO_URL || "", options);
 
 const db = mongoose.connection;
 
-db.on("error", (err: string) => {
+db.on("error", (err) => {
   console.error(new Error("---- Could not connect to database ----"), err);
 });
 

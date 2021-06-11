@@ -4,7 +4,7 @@ const router = express.Router();
 
 
 router.get("/", async (_, res) => {
-  let document = await UserModel.create({name: 'Kitty'})
+  let document = await UserModel.find({}).exec();
   res.send(document);
 });
 
