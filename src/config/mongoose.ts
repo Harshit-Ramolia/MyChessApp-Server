@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 import mongoose from "mongoose";
-import { IS_PROD } from "./constants.js";
+import { IS_PROD } from "./constants";
 
 let options = {
   useNewUrlParser: true,
