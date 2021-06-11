@@ -17,18 +17,14 @@ let options = {
 //   console.log("DEBUG MONGO: ", coll, method, query, doc, options);
 // });
 
-mongoose.connect(process.env.MONGO_URL || '', options);
+mongoose.connect(process.env.MONGO_URL || "", options);
 
 const db = mongoose.connection;
 
 db.on("error", (err) => {
-  console.error(
-    new Error("---- Could not connect to database ----"),
-    err
-  );
+  console.error(new Error("---- Could not connect to database ----"), err);
 });
 
 db.once("open", () => {
   console.info(`---- Database Connected ----`);
 });
-
