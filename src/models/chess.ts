@@ -2,8 +2,8 @@ import { prop, getModelForClass } from "@typegoose/typegoose";
 import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
 
 class ChessClass extends TimeStamps {
-  // @prop({ref})
+  // @prop()
   // public host: string;
 }
 
-export const UserModel = getModelForClass(ChessClass);
+export const ChessModel = getModelForClass(ChessClass);
