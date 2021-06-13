@@ -1,16 +1,12 @@
-import { prop, getModelForClass, ReturnModelType } from "@typegoose/typegoose";
+import { prop, getModelForClass } from "@typegoose/typegoose";
+import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
 
-class UserClass {
+class UserClass extends TimeStamps {
   @prop()
-  public name?: string;
+  public username: string;
 
-  public static async findByName(this: ReturnModelType<typeof UserClass>, name: string) {
-    return this.find({ name }).exec();
-  }
+  @prop()
+  public password: string;
 }
 
-
-
 export const UserModel = getModelForClass(UserClass);
-
-

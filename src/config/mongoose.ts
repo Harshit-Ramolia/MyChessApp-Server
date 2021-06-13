@@ -13,9 +13,9 @@ let options = {
 };
 
 // debug mongodb
-// mongoose.set("debug", function (coll, method, query, doc, options) {
-//   console.log("DEBUG MONGO: ", coll, method, query, doc, options);
-// });
+mongoose.set("debug", function (coll, method, query, doc, options) {
+  console.log("DEBUG MONGO: ", coll, method, query, doc, options);
+});
 
 mongoose.connect(process.env.MONGO_URL || "", options);
 
