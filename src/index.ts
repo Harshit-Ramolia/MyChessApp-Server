@@ -5,8 +5,9 @@ import cors from "cors";
 import session from "express-session";
 import { graphqlHTTP } from "express-graphql";
 import { buildSchema, NonEmptyArray } from "type-graphql";
-import { IS_PROD } from "./config/constants";
+import { COOKIE_MAX_AGE, COOKIE_NAME, IS_PROD } from "./config/constants";
 import { Resolvers } from "./resolvers/index";
+import "./util/dotenv";
 
 const main = async () => {
   console.log("Run ENV = ", process.env.NODE_ENV || "Development");
@@ -29,7 +30,21 @@ const main = async () => {
 
   app.use(express.json());
   app.use(cors({ origin: "*", credentials: true }));
-  app.use(session({ secret: "secret", resave: true, saveUninitialized: true }));
+  app.use(
+    session({
+      secret: process.env.SESSION_SECRET || "secret",
+      name: COOKIE_NAME,
+      resave: false,
+      saveUninitialized: true,
+      rolling: true,
+      cookie: {
+        sameSite: "lax",
+        httpOnly: true,
+        maxAge: COOKIE_MAX_AGE,
+        secure: IS_PROD,
+      },
+    })
+  );
   app.use(routes);
 
   app.listen(PORT, () => {

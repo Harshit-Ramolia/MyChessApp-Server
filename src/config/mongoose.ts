@@ -1,5 +1,4 @@
-import dotenv from "dotenv";
-dotenv.config();
+import "../util/dotenv"
 import mongoose from "mongoose";
 import { IS_PROD } from "./constants";
 
