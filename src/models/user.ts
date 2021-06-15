@@ -1,7 +1,6 @@
 import { prop, getModelForClass } from "@typegoose/typegoose";
 import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
 import { Field, ObjectType } from "type-graphql";
-import * as mongoose from "mongoose";
 
 @ObjectType()
 export class UserClass extends TimeStamps {

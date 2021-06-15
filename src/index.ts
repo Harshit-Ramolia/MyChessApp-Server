@@ -14,20 +14,6 @@ const main = async () => {
   const PORT = process.env.PORT || 8080;
   const app = express();
 
-  app.use(
-    "/data",
-    graphqlHTTP(async (req, res) => {
-      return {
-        schema: await buildSchema({
-          resolvers: Resolvers as NonEmptyArray<Function>,
-          validate: false,
-        }),
-        graphiql: !IS_PROD,
-        // context: () => ({UserModel}),
-      };
-    })
-  );
-
   app.use(express.json());
   app.use(cors({ origin: "*", credentials: true }));
   app.use(
@@ -35,7 +21,7 @@ const main = async () => {
       secret: process.env.SESSION_SECRET || "secret",
       name: COOKIE_NAME,
       resave: false,
-      saveUninitialized: true,
+      saveUninitialized: false,
       rolling: true,
       cookie: {
         sameSite: "lax",
@@ -46,6 +32,19 @@ const main = async () => {
     })
   );
   app.use(routes);
+  app.use(
+    "/data",
+    graphqlHTTP(async (req, res) => {
+      return {
+        schema: await buildSchema({
+          resolvers: Resolvers as NonEmptyArray<Function>,
+          validate: false,
+        }),
+        graphiql: !IS_PROD,
+        context: { req, res },
+      };
+    })
+  );
 
   app.listen(PORT, () => {
     console.log(`Server connected at port : ${PORT}`);

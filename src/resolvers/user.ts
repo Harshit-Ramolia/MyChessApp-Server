@@ -1,5 +1,6 @@
 import {
   Arg,
+  Ctx,
   Field,
   InputType,
   Mutation,
@@ -10,6 +11,7 @@ import {
 import "reflect-metadata";
 import { UserModel, UserClass } from "../models/user";
 import argon2 from "argon2";
+import { MyContext } from "src/types";
 
 @InputType()
 class UserRegisterInput {
@@ -69,7 +71,7 @@ export class UserResolver {
   }
 
   @Mutation(() => UserResponse)
-  async login(@Arg("input") input: UserLoginInput) {
+  async login(@Arg("input") input: UserLoginInput, @Ctx() { req }: MyContext) {
     const { username, email, password } = input;
     const user = await UserModel.findOne({ username, email });
     if (!user) {
@@ -93,6 +95,7 @@ export class UserResolver {
         ],
       };
     }
+    req.session.user = user._id;
     return { user };
   }
 }
