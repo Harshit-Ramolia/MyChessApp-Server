@@ -54,14 +54,23 @@ class UserResponse {
 
 @Resolver()
 export class UserResolver {
+  @Query(() => UserClass, { nullable: true })
+  async me(@Ctx() { req }: MyContext) {
+    if (req.session.user?.id) {
+      return UserModel.findOne({ _id: req.session.user.id }).exec();
+    } else {
+      return null;
+    }
+  }
+
   @Query(() => [UserClass])
   users() {
-    return UserModel.find({});
+    return UserModel.find({}).exec();
   }
 
   @Query(() => UserClass, { nullable: true })
   userByID(@Arg("id") id: string): UserClass {
-    return UserModel.findOne({ _id: id });
+    return UserModel.findOne({ _id: id }).exec();
   }
 
   @Mutation(() => UserClass)
@@ -73,7 +82,7 @@ export class UserResolver {
   @Mutation(() => UserResponse)
   async login(@Arg("input") input: UserLoginInput, @Ctx() { req }: MyContext) {
     const { username, email, password } = input;
-    const user = await UserModel.findOne({ username, email });
+    const user = await UserModel.findOne({ username, email }).exec();
     if (!user) {
       return {
         error: [
@@ -95,7 +104,7 @@ export class UserResolver {
         ],
       };
     }
-    req.session.user = user._id;
+    req.session.user = { id: user._id };
     return { user };
   }
 }
