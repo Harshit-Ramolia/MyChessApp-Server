@@ -11,7 +11,6 @@ let options = {
   useCreateIndex: true,
 };
 
-// debug mongodb
 mongoose.set("debug", function (coll, method, query, doc, options) {
   console.log("DEBUG MONGO: ", coll, method, query, doc, options);
 });

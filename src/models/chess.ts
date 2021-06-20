@@ -1,9 +1,31 @@
-import { prop, getModelForClass } from "@typegoose/typegoose";
+import { prop, getModelForClass, Ref } from "@typegoose/typegoose";
 import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
+import { Field, ObjectType } from "type-graphql";
+import { PositionClass } from "./position";
+import { UserClass } from "./user";
 
-class ChessClass extends TimeStamps {
-  // @prop()
-  // public host: string;
+@ObjectType()
+export class ChessClass extends TimeStamps {
+  @Field(() => String)
+  _id: string;
+
+  @Field(() => Date)
+  createdAt: Date;
+
+  @Field(() => Date)
+  updatedAt: Date;
+
+  @Field(() => UserClass)
+  @prop({ ref: () => UserClass })
+  public white: Ref<UserClass>;
+
+  @Field(() => UserClass)
+  @prop({ ref: () => UserClass })
+  public black: Ref<UserClass>;
+
+  @Field(() => PositionClass, { nullable: true })
+  @prop({ ref: () => PositionClass })
+  public firstPosition: Ref<PositionClass>;
 }
 
 export const ChessModel = getModelForClass(ChessClass);

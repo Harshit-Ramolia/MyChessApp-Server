@@ -16,7 +16,7 @@ import { MyContext } from "src/types";
 @InputType()
 class UserRegisterInput {
   @Field()
-  username: string;
+  email: string;
 
   @Field()
   password: string;
