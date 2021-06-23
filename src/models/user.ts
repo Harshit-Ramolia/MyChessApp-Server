@@ -23,9 +23,9 @@ export class UserClass extends TimeStamps {
   @prop({ match: /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/ })
   public email?: string;
 
-  @Field({ nullable: true })
-  @prop()
-  public password?: string;
+  @Field()
+  @prop({ defaultValue: 0 })
+  public gameStatus: 0 | 1 | 2;
 }
 
 export const UserModel = getModelForClass(UserClass);

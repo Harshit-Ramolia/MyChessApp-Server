@@ -2,7 +2,7 @@ import {
   Arg,
   Ctx,
   Field,
-  InputType,
+  Int,
   Mutation,
   ObjectType,
   Query,
@@ -10,38 +10,12 @@ import {
 } from "type-graphql";
 import "reflect-metadata";
 import { UserModel, UserClass } from "../models/user";
-import argon2 from "argon2";
-import { MyContext } from "src/types";
-
-@InputType()
-class UserRegisterInput {
-  @Field()
-  email: string;
-
-  @Field()
-  password: string;
-}
-
-@InputType()
-class UserLoginInput {
-  @Field({ nullable: true })
-  username?: string;
-
-  @Field({ nullable: true })
-  email?: string;
-
-  @Field()
-  password!: string;
-}
-
-@ObjectType()
-class FieldError {
-  @Field()
-  field: string;
-
-  @Field()
-  message: string;
-}
+import { MyContext } from "../types";
+import { FieldError } from "./FieldError";
+import googleVerification from "../util/googleVerification";
+import findOrCreate from "../util/findOrCreate";
+import { COOKIE_NAME } from "../config/constants";
+import Invite from "../util/invite";
 
 @ObjectType()
 class UserResponse {
@@ -73,38 +47,109 @@ export class UserResolver {
     return UserModel.findOne({ _id: id }).exec();
   }
 
-  @Mutation(() => UserClass)
-  async register(@Arg("input") input: UserRegisterInput) {
-    const hashedPassword = await argon2.hash(input.password);
-    return UserModel.create({ ...input, password: hashedPassword });
+  @Query(() => Int)
+  async GameStatus(@Ctx() { req }: MyContext) {
+    if (!req.session.user?.id) {
+      return -1;
+    } else {
+      let user: UserClass = await UserModel.findOne({
+        _id: req.session.user.id,
+      }).exec();
+      return user.gameStatus;
+    }
   }
 
   @Mutation(() => UserResponse)
-  async login(@Arg("input") input: UserLoginInput, @Ctx() { req }: MyContext) {
-    const { username, email, password } = input;
-    const user = await UserModel.findOne({ username, email }).exec();
+  async login(@Arg("token") token: string, @Ctx() { req }: MyContext) {
+    let response = await googleVerification(token);
+    let { email, username, error } = response;
+    if (error || email == undefined || username == undefined) {
+      return {
+        errors: [
+          {
+            field: "google",
+            message: "Invalid google token",
+          },
+        ],
+      };
+    } else {
+      let user: UserClass = await findOrCreate(email, username);
+      if (!user) {
+        return {
+          errors: [
+            {
+              field: "username",
+              message: "Server Error",
+            },
+          ],
+        };
+      }
+
+      req.session.user = { id: user._id };
+      return { user };
+    }
+  }
+
+  @Mutation(() => Boolean)
+  logout(@Ctx() { req, res }: MyContext) {
+    return new Promise((resolve) =>
+      req.session.destroy((err) => {
+        res.clearCookie(COOKIE_NAME);
+        if (err) {
+          console.log(err);
+          resolve(false);
+          return;
+        }
+
+        resolve(true);
+      })
+    );
+  }
+
+  @Mutation(() => UserResponse)
+  async invitation(@Arg("email") email: string, @Ctx() { req }: MyContext) {
+    const user: UserClass = await UserModel.findOne({ email }).exec();
+    if (!req.session.user?.id) {
+      return {
+        errors: [
+          {
+            field: "authentication",
+            message: "User is not log in",
+          },
+        ],
+      };
+    }
     if (!user) {
       return {
-        error: [
+        errors: [
           {
-            field: "username",
-            message: "Username doesn't exist",
+            field: "friend",
+            message: "User is not a member of MYCHESSAPP",
           },
         ],
       };
+    } else {
+      if (user.gameStatus === 2) {
+        return {
+          errors: [
+            {
+              field: "friend",
+              message: "User is already playing",
+            },
+          ],
+        };
+      }
+      if ((await Invite(req, user._id)) === false) {
+        return {
+          errors: [
+            {
+              field: "friend",
+              message: "Internal Server Error",
+            },
+          ],
+        };
+      }
+      return {};
     }
-    const isValid = await argon2.verify(user.password, password);
-    if (!isValid) {
-      return {
-        error: [
-          {
-            field: "password",
-            message: "incorrect password",
-          },
-        ],
-      };
-    }
-    req.session.user = { id: user._id };
-    return { user };
   }
 }
