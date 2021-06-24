@@ -26,6 +26,8 @@ export class ChessClass extends TimeStamps {
   @Field(() => PositionClass, { nullable: true })
   @prop({ ref: () => PositionClass })
   public firstPosition: Ref<PositionClass>;
+  
+  _doc: any;
 }
 
 export const ChessModel = getModelForClass(ChessClass);

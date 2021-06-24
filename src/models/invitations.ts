@@ -21,6 +21,8 @@ export class InvitationClass extends TimeStamps {
   @Field(() => UserClass)
   @prop({ ref: () => UserClass })
   public friend: Ref<UserClass>;
+
+  _doc: any;
 }
 
 export const InvitationModel = getModelForClass(InvitationClass);
