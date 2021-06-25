@@ -4,6 +4,8 @@ import {
   Ctx,
   FieldResolver,
   Mutation,
+  PubSub,
+  PubSubEngine,
   Query,
   Resolver,
   Root,
@@ -12,7 +14,6 @@ import {
 import { MyContext } from "../types";
 import { UserModel } from "../models/user";
 import { ChessClass, ChessModel } from "../models/chess";
-import { Interface } from "readline";
 
 @Resolver(InvitationClass)
 export class InvitationResolver {
@@ -61,6 +62,7 @@ export class InvitationResolver {
   async acceptInvitation(
     @Arg("hostID") hostID: string,
     @Ctx() { req }: MyContext
+    @PubSub() pubSub: PubSubEngine
   ) {
     if (!req.session.user?.id) {
       return false;
@@ -85,6 +87,8 @@ export class InvitationResolver {
         await InvitationModel.deleteMany({
           host: hostID,
         });
+        const payload = {id:hostID};
+        await pubSub.publish("gameStarted", payload);
         return true;
       } catch (error) {
         return false;
@@ -92,17 +96,28 @@ export class InvitationResolver {
     }
   }
 
-  
+  @Subscription({
+    topics: "gameStarted",
+    filter: ({ payload, args }) => {
+      return payload.id.toString() == args.id;
+    },
+    nullable: true,
+  })
+  gameStarted(@Arg("id") id: string): boolean {
+    return true;
+  }
 
   @Subscription({
     topics: "newInvitation",
-    filter: ({ payload,context }) => {
-      return payload.friend === context.req.session.user.id;
+    filter: ({ payload, args }) => {
+      return payload.friend.toString() == args.id;
     },
-    nullable:true
+    nullable: true,
   })
-  newInvitation(@Root() Invitation: InvitationClass): InvitationClass {
-    console.log("A")
+  newInvitation(
+    @Root() Invitation: InvitationClass,
+    @Arg("id") id: string
+  ): InvitationClass {
     return Invitation;
   }
 }

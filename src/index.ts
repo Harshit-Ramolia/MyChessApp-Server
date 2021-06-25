@@ -3,11 +3,13 @@ import routes from "./routes";
 import "./config/mongoose";
 import cors from "cors";
 import session from "express-session";
-import { graphqlHTTP } from "express-graphql";
 import { buildSchema, NonEmptyArray } from "type-graphql";
 import { COOKIE_MAX_AGE, COOKIE_NAME, IS_PROD } from "./config/constants";
 import { Resolvers } from "./resolvers/index";
 import "./util/dotenv";
+import { MyContext } from "./types";
+import { ApolloServer } from "apollo-server-express";
+import { createServer } from "http";
 
 const main = async () => {
   console.log("Run ENV = ", process.env.NODE_ENV || "Development");
@@ -32,22 +34,42 @@ const main = async () => {
     })
   );
   app.use(routes);
-  app.use(
-    "/graphql",
-    graphqlHTTP(async (req, res) => {
-      return {
-        schema: await buildSchema({
-          resolvers: Resolvers as NonEmptyArray<Function>,
-          validate: false,
-        }),
-        graphiql: {subscriptionEndpoint: "http://localhost:8080/subscriptions"},
-        context: { req, res },
-      };
-    })
-  );
 
-  app.listen(PORT, () => {
-    console.log(`Server connected at port : ${PORT}`);
+  const apolloServer = new ApolloServer({
+    schema: await buildSchema({
+      resolvers: Resolvers as NonEmptyArray<Function>,
+      validate: false,
+    }),
+    subscriptions: {
+      onConnect: (connectionParams, webSocket, context) => {
+        console.log("Connected!");
+      },
+      onDisconnect: (webSocket, context) => {
+        console.log("Disconnected!");
+      },
+    },
+    context: ({ req, res }: MyContext) => ({
+      req,
+      res,
+    }),
+    playground: {
+      settings: {
+        "request.credentials": "include",
+      },
+    },
+  });
+
+  await apolloServer.start();
+
+  apolloServer.applyMiddleware({
+    app,
+    cors: false,
+  });
+
+  const ws = createServer(app);
+  apolloServer.installSubscriptionHandlers(ws);
+  ws.listen(PORT, async () => {
+    console.log(`Server is running on port : ${PORT}`);
   });
 };
 
