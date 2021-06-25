@@ -18,7 +18,8 @@ import googleVerification from "../util/googleVerification";
 import findOrCreate from "../util/findOrCreate";
 import { COOKIE_NAME } from "../config/constants";
 import Invite from "../util/invite";
-import { InvitationClass } from "src/models/invitations";
+import { InvitationClass } from "../models/invitations";
+import { ChessClass, ChessModel } from "../models/chess";
 
 @ObjectType()
 class UserResponse {
@@ -118,14 +119,16 @@ export class UserResolver {
     );
   }
 
-  @Query(() => String, { nullable: true })
+  @Query(() => ChessClass, { nullable: true })
   async currentGame(@Ctx() { req }: MyContext) {
     if (!req.session.user?.id) return null;
     const user: UserClass = await UserModel.findOne({
       _id: req.session.user.id,
     }).exec();
     if (!user || !user.currentGame) return null;
-    return user.currentGame;
+    let currentGame = await ChessModel.findOne({ _id: user.currentGame });
+    if (!currentGame) return null;
+    return currentGame;
   }
 
   @Mutation(() => UserResponse)
