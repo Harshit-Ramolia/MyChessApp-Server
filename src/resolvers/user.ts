@@ -5,6 +5,8 @@ import {
   Int,
   Mutation,
   ObjectType,
+  PubSub,
+  PubSubEngine,
   Query,
   Resolver,
 } from "type-graphql";
@@ -16,6 +18,7 @@ import googleVerification from "../util/googleVerification";
 import findOrCreate from "../util/findOrCreate";
 import { COOKIE_NAME } from "../config/constants";
 import Invite from "../util/invite";
+import { InvitationClass } from "src/models/invitations";
 
 @ObjectType()
 class UserResponse {
@@ -24,6 +27,15 @@ class UserResponse {
 
   @Field(() => UserClass, { nullable: true })
   user?: UserClass;
+}
+
+@ObjectType()
+class GameResponse {
+  @Field(() => [FieldError], { nullable: true })
+  errors?: FieldError[];
+
+  @Field(() => UserClass, { nullable: true })
+  game?: string;
 }
 
 @Resolver()
@@ -106,8 +118,22 @@ export class UserResolver {
     );
   }
 
+  @Query(() => String, { nullable: true })
+  async currentGame(@Ctx() { req }: MyContext) {
+    if (!req.session.user?.id) return null;
+    const user: UserClass = await UserModel.findOne({
+      _id: req.session.user.id,
+    }).exec();
+    if (!user || !user.currentGame) return null;
+    return user.currentGame;
+  }
+
   @Mutation(() => UserResponse)
-  async invitation(@Arg("email") email: string, @Ctx() { req }: MyContext) {
+  async invite(
+    @Arg("email") email: string,
+    @Ctx() { req }: MyContext,
+    @PubSub() pubSub: PubSubEngine
+  ) {
     const user: UserClass = await UserModel.findOne({ email }).exec();
     if (!req.session.user?.id) {
       return {
@@ -139,7 +165,8 @@ export class UserResolver {
           ],
         };
       }
-      if ((await Invite(req, user._id)) === false) {
+      let newInvitation = await Invite(req, user._id);
+      if (newInvitation === null) {
         return {
           errors: [
             {
@@ -149,6 +176,8 @@ export class UserResolver {
           ],
         };
       }
+      const payload: InvitationClass = newInvitation;
+      await pubSub.publish("newInvitation", payload);
       return {};
     }
   }

@@ -26,6 +26,10 @@ export class UserClass extends TimeStamps {
   @Field()
   @prop({ defaultValue: 0 })
   public gameStatus: 0 | 1 | 2;
+
+  @Field({ nullable: true })
+  @prop()
+  public currentGame: string;
 }
 
 export const UserModel = getModelForClass(UserClass);

@@ -1,7 +1,9 @@
 import {
+  Arg,
   Ctx,
   Field,
   FieldResolver,
+  Mutation,
   ObjectType,
   Query,
   Resolver,
@@ -46,7 +48,29 @@ export class ChessResolver {
   @Query(() => [ChessClass])
   async allChess() {
     return await ChessModel.find({}).exec();
-     
+  }
+
+  @Mutation(() => Boolean)
+  async endGame(@Arg("chessID") chessID: string) {
+    try {
+      let chess: ChessClass = await ChessModel.findOneAndUpdate(
+        { _id: chessID },
+        { isGameRunning: false }
+      ).exec();
+      if (!chess) return false;
+      await UserModel.findOneAndUpdate(
+        { _id: chess.white },
+        { gameStatus: 0, currentGame: null }
+      );
+      await UserModel.findOneAndUpdate(
+        { _id: chess.black },
+        { gameStatus: 0, currentGame: null }
+      );
+      return true;
+    } catch (error) {
+      console.log(error);
+      return false;
+    }
   }
 
   @FieldResolver()

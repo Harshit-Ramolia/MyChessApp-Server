@@ -4,7 +4,7 @@ import { UserModel } from "../models/user";
 
 const Invite = async (req: Request, friendID: string) => {
   if (!req.session.user?.id) {
-    return false;
+    return null;
   }
   const newInvitation: InvitationClass = await InvitationModel.create({
     host: req.session.user.id,
@@ -12,13 +12,13 @@ const Invite = async (req: Request, friendID: string) => {
   });
 
   if (!newInvitation) {
-    return false;
+    return null;
   } else {
     await UserModel.findOneAndUpdate(
       { _id: req.session.user.id },
       { gameStatus: 1 }
     );
-    return true;
+    return newInvitation;
   }
 };
 

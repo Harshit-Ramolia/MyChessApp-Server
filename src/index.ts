@@ -40,7 +40,7 @@ const main = async () => {
           resolvers: Resolvers as NonEmptyArray<Function>,
           validate: false,
         }),
-        graphiql: !IS_PROD,
+        graphiql: {subscriptionEndpoint: "http://localhost:8080/subscriptions"},
         context: { req, res },
       };
     })

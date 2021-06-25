@@ -1,7 +1,18 @@
 import { InvitationClass, InvitationModel } from "../models/invitations";
-import { Arg, Ctx, FieldResolver, Query, Resolver, Root } from "type-graphql";
+import {
+  Arg,
+  Ctx,
+  FieldResolver,
+  Mutation,
+  Query,
+  Resolver,
+  Root,
+  Subscription,
+} from "type-graphql";
 import { MyContext } from "../types";
 import { UserModel } from "../models/user";
+import { ChessClass, ChessModel } from "../models/chess";
+import { Interface } from "readline";
 
 @Resolver(InvitationClass)
 export class InvitationResolver {
@@ -28,7 +39,7 @@ export class InvitationResolver {
     }).exec();
   }
 
-  @Query(() => Boolean)
+  @Mutation(() => Boolean)
   async cancelInvitation(@Ctx() { req }: MyContext) {
     if (!req.session.user?.id) {
       return false;
@@ -46,7 +57,7 @@ export class InvitationResolver {
     }
   }
 
-  @Query(() => Boolean)
+  @Mutation(() => Boolean)
   async acceptInvitation(
     @Arg("hostID") hostID: string,
     @Ctx() { req }: MyContext
@@ -55,11 +66,19 @@ export class InvitationResolver {
       return false;
     } else {
       try {
+        let newChess: ChessClass = await ChessModel.create({
+          white: hostID,
+          black: req.session.user.id,
+          isGameRunning: true,
+        });
         await UserModel.findOneAndUpdate(
           { _id: req.session.user.id },
-          { gameStatus: 2 }
+          { gameStatus: 2, currentGame: newChess._id }
         );
-        await UserModel.findOneAndUpdate({ _id: hostID }, { gameStatus: 2 });
+        await UserModel.findOneAndUpdate(
+          { _id: hostID },
+          { gameStatus: 2, currentGame: newChess._id }
+        );
         await InvitationModel.deleteMany({
           friend: req.session.user.id,
         });
@@ -71,5 +90,19 @@ export class InvitationResolver {
         return false;
       }
     }
+  }
+
+  
+
+  @Subscription({
+    topics: "newInvitation",
+    filter: ({ payload,context }) => {
+      return payload.friend === context.req.session.user.id;
+    },
+    nullable:true
+  })
+  newInvitation(@Root() Invitation: InvitationClass): InvitationClass {
+    console.log("A")
+    return Invitation;
   }
 }

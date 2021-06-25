@@ -26,7 +26,11 @@ export class ChessClass extends TimeStamps {
   @Field(() => PositionClass, { nullable: true })
   @prop({ ref: () => PositionClass })
   public firstPosition: Ref<PositionClass>;
-  
+
+  @Field()
+  @prop({ default: true })
+  public isGameRunning: boolean;
+
   _doc: any;
 }
 
