@@ -68,6 +68,13 @@ export class InvitationResolver {
       return false;
     } else {
       try {
+        let invitaitation: InvitationClass = await InvitationModel.findOne({
+          host: hostID,
+          friend: req.session.user.id,
+        });
+        if (!invitaitation) {
+          return false;
+        }
         let newChess: ChessClass = await ChessModel.create({
           white: hostID,
           black: req.session.user.id,
@@ -87,7 +94,7 @@ export class InvitationResolver {
         await InvitationModel.deleteMany({
           host: hostID,
         });
-        const payload = {id:hostID};
+        const payload = { id: hostID };
         await pubSub.publish("gameStarted", payload);
         return true;
       } catch (error) {
@@ -97,7 +104,7 @@ export class InvitationResolver {
   }
 
   @Subscription({
-    topics: "gameStarted",
+    topics: ["gameStarted", "endGame"],
     filter: ({ payload, args }) => {
       return payload.id.toString() == args.id;
     },

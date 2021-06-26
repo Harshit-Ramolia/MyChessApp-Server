@@ -184,4 +184,21 @@ export class UserResolver {
       return {};
     }
   }
+
+  @Mutation(() => Number)
+  async invalidateQuery(
+    @Arg("GameStatus") GameStatus: 0 | 1 | 2 | 3,
+    @Ctx() { req }: MyContext
+  ) {
+    if (!req.session.user?.id) return -1;
+    else {
+      let user: UserClass = await UserModel.findOne({
+        _id: req.session.user.id,
+      }).exec();
+      if (!user) return -1;
+      else {
+        return user.gameStatus;
+      }
+    }
+  }
 }

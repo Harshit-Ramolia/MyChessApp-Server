@@ -108,7 +108,11 @@ export class ChessResolver {
   }
 
   @Mutation(() => Boolean)
-  async endGame(@Arg("chessID") chessID: string) {
+  async endGame(
+    @Arg("chessID") chessID: string,
+    @PubSub() pubSub: PubSubEngine,
+    @Ctx() { req }: MyContext
+  ) {
     try {
       let chess: ChessClass = await ChessModel.findOneAndUpdate(
         { _id: chessID },
@@ -123,6 +127,12 @@ export class ChessResolver {
         { _id: chess.black },
         { gameStatus: 0, currentGame: null }
       );
+      await pubSub.publish("gameStarted", {
+        id: chess.white?.toString(),
+      });
+      await pubSub.publish("gameStarted", {
+        id: chess.black?.toString(),
+      });
       return true;
     } catch (error) {
       console.log(error);
