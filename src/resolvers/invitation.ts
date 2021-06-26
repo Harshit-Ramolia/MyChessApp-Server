@@ -61,7 +61,7 @@ export class InvitationResolver {
   @Mutation(() => Boolean)
   async acceptInvitation(
     @Arg("hostID") hostID: string,
-    @Ctx() { req }: MyContext
+    @Ctx() { req }: MyContext,
     @PubSub() pubSub: PubSubEngine
   ) {
     if (!req.session.user?.id) {

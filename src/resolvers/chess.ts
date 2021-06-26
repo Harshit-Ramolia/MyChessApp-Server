@@ -5,15 +5,19 @@ import {
   FieldResolver,
   Mutation,
   ObjectType,
+  PubSub,
+  PubSubEngine,
   Query,
   Resolver,
   Root,
+  Subscription,
 } from "type-graphql";
 import "reflect-metadata";
 import { MyContext } from "../types";
 import { ChessClass, ChessModel } from "../models/chess";
 import { FieldError } from "./FieldError";
 import { UserModel } from "../models/user";
+import { ShortMove } from "chess.js";
 
 @ObjectType()
 class ChessResponse {
@@ -22,6 +26,12 @@ class ChessResponse {
 
   @Field(() => ChessClass, { nullable: true })
   chess?: ChessClass;
+}
+
+interface MovePayload {
+  id: string;
+  position: string;
+  move: string;
 }
 
 @Resolver(ChessClass)
@@ -48,6 +58,40 @@ export class ChessResolver {
   @Query(() => [ChessClass])
   async allChess() {
     return await ChessModel.find({}).exec();
+  }
+
+  @Mutation(() => Boolean)
+  async saveMove(
+    @Arg("chessID") chessID: string,
+    @Arg("position") position: string,
+    @Arg("move") move: string,
+    @Ctx() { req }: MyContext,
+    @PubSub() pubSub: PubSubEngine
+  ) {
+    if (!req.session.user?.id) return false;
+    const chess: ChessClass = await ChessModel.findOne({ _id: chessID }).exec();
+    if (!chess) return false;
+    let payload: MovePayload = { position, id: "", move };
+    if (chess.white?.toString() === req.session.user.id)
+      payload = { ...payload, id: chess.black?.toString() || "" };
+    else if (chess.black?.toString() === req.session.user.id)
+      payload = { ...payload, id: chess.white?.toString() || "" };
+    else {
+      return false;
+    }
+    await pubSub.publish("move", payload);
+    return true;
+  }
+
+  @Subscription({
+    topics: "move",
+    filter: ({ payload, args }) => {
+      return payload.id.toString() == args.id;
+    },
+    nullable: true,
+  })
+  move(@Root() movePayload: MovePayload, @Arg("id") id: string): string {
+    return movePayload.move;
   }
 
   @Mutation(() => Boolean)
