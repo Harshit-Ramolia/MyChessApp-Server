@@ -18,6 +18,7 @@ import { ChessClass, ChessModel } from "../models/chess";
 import { FieldError } from "./FieldError";
 import { UserModel } from "../models/user";
 import { ShortMove } from "chess.js";
+import { PositionClass, PositionModel } from "../models/position";
 
 @ObjectType()
 class ChessResponse {
@@ -60,6 +61,14 @@ export class ChessResolver {
     return await ChessModel.find({}).exec();
   }
 
+  @Query(() => [ChessClass], { nullable: true })
+  async historyGames(@Ctx() { req }: MyContext) {
+    if (!req.session.user?.id) return null;
+    return await ChessModel.find({
+      $or: [{ white: req.session.user.id }, { black: req.session.user.id }],
+    }).exec();
+  }
+
   @Mutation(() => Boolean)
   async saveMove(
     @Arg("chessID") chessID: string,
@@ -69,7 +78,10 @@ export class ChessResolver {
     @PubSub() pubSub: PubSubEngine
   ) {
     if (!req.session.user?.id) return false;
-    const chess: ChessClass = await ChessModel.findOne({ _id: chessID }).exec();
+    const chess: ChessClass = await ChessModel.findOneAndUpdate(
+      { _id: chessID },
+      { lastPosition: position }
+    ).exec();
     if (!chess) return false;
     let payload: MovePayload = { position, id: "", move };
     if (chess.white?.toString() === req.session.user.id)
@@ -79,6 +91,7 @@ export class ChessResolver {
     else {
       return false;
     }
+    await PositionModel.create({ chessID, data: position });
     await pubSub.publish("move", payload);
     return true;
   }
@@ -125,5 +138,13 @@ export class ChessResolver {
   @FieldResolver()
   async black(@Root() chessInstance: ChessClass) {
     return await UserModel.findOne({ _id: chessInstance._doc.black }).exec();
+  }
+
+  @FieldResolver()
+  async listOfPositions(@Root() chessInstance: ChessClass) {
+    let positions: [PositionClass] = await PositionModel.find({
+      chessID: chessInstance._doc._id,
+    }).exec();
+    return positions.map((obj) => obj.data);
   }
 }

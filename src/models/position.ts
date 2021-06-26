@@ -1,6 +1,7 @@
 import { prop, getModelForClass, Ref } from "@typegoose/typegoose";
 import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
 import { Field, ObjectType } from "type-graphql";
+import { ChessClass } from "./chess";
 
 @ObjectType()
 export class PositionClass extends TimeStamps {
@@ -13,9 +14,9 @@ export class PositionClass extends TimeStamps {
   @Field(() => Date)
   updatedAt: Date;
 
-  @Field(() => PositionClass, { nullable: true })
-  @prop({ ref: () => PositionClass })
-  public next: Ref<PositionClass>;
+  @Field({ nullable: true })
+  @prop()
+  public chessID: string;
 
   @Field(() => String, { nullable: true })
   @prop()

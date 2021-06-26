@@ -31,6 +31,13 @@ export class ChessClass extends TimeStamps {
   @prop({ default: true })
   public isGameRunning: boolean;
 
+  @Field(() => [String], { nullable: true })
+  public listOfPositions: [String];
+
+  @Field({ nullable: true })
+  @prop()
+  public lastPosition: string;
+
   _doc: any;
 }
 
