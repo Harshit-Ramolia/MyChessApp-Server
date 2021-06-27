@@ -97,6 +97,7 @@ export class InvitationResolver {
     nullable: true,
   })
   gameStarted(@Arg("id") id: string): boolean {
+    id
     return true;
   }
 
@@ -111,6 +112,7 @@ export class InvitationResolver {
     @Root() Invitation: InvitationClass,
     @Arg("id") id: string
   ): InvitationClass {
+    id
     return Invitation;
   }
 

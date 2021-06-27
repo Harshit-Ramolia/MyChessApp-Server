@@ -135,6 +135,7 @@ export class ChessResolver {
     nullable: true,
   })
   move(@Root() movePayload: MovePayload, @Arg("id") id: string): string {
+    id
     return movePayload.move;
   }
 
