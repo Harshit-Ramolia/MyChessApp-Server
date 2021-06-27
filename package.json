@@ -4,6 +4,7 @@
   "description": "Server for chess application",
   "main": "index",
   "scripts": {
+    "tsc": "tsc",
     "build": "tsc",
     "watch": "tsc -w",
     "dev": "nodemon ./dist/index",
