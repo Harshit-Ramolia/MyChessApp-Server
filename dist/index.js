@@ -14,25 +14,58 @@ const index_1 = require("./resolvers/index");
 require("./util/dotenv");
 const apollo_server_express_1 = require("apollo-server-express");
 const http_1 = require("http");
+const connect_mongodb_session_1 = __importDefault(require("connect-mongodb-session"));
 const main = async () => {
     console.log("Run ENV = ", process.env.NODE_ENV || "Development");
     const PORT = process.env.PORT || 8080;
     const app = express_1.default();
     app.use(express_1.default.json());
     app.use(cors_1.default({ origin: "http://localhost:3000", credentials: true }));
-    app.use(express_session_1.default({
-        secret: process.env.SESSION_SECRET || "secret",
-        name: constants_1.COOKIE_NAME,
-        resave: false,
-        saveUninitialized: false,
-        rolling: true,
-        cookie: {
-            sameSite: "lax",
-            httpOnly: true,
-            maxAge: constants_1.COOKIE_MAX_AGE,
-            secure: constants_1.IS_PROD,
-        },
-    }));
+    if (constants_1.IS_PROD) {
+        app.use(express_session_1.default({
+            secret: process.env.SESSION_SECRET || "secret",
+            name: constants_1.COOKIE_NAME,
+            resave: false,
+            saveUninitialized: false,
+            rolling: true,
+            cookie: {
+                sameSite: "lax",
+                httpOnly: true,
+                maxAge: constants_1.COOKIE_MAX_AGE,
+                secure: constants_1.IS_PROD,
+            },
+        }));
+    }
+    else {
+        const MongoDBStore = connect_mongodb_session_1.default(express_session_1.default);
+        const store = new MongoDBStore({
+            uri: process.env.MONGO_URL || "",
+            collection: "sessionCacheStore",
+            expires: 1 * 24 * 60 * 60 * 1000,
+            connectionOptions: {
+                useNewUrlParser: true,
+                useUnifiedTopology: true,
+                poolSize: 100,
+                serverSelectionTimeoutMS: 10000,
+            },
+        });
+        store.on("error", function (error) {
+            console.error(new Error(`Error in Session`), error);
+        });
+        app.use(express_session_1.default({
+            secret: process.env.SESSION_SECRET || "secret",
+            name: constants_1.COOKIE_NAME,
+            cookie: {
+                maxAge: constants_1.COOKIE_MAX_AGE,
+                sameSite: "lax",
+                httpOnly: true,
+            },
+            store: store,
+            resave: false,
+            saveUninitialized: false,
+            rolling: true,
+        }));
+    }
     app.use(routes_1.default);
     const apolloServer = new apollo_server_express_1.ApolloServer({
         schema: await type_graphql_1.buildSchema({
