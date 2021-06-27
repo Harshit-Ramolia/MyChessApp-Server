@@ -6,10 +6,14 @@
   "scripts": {
     "watch": "tsc -w",
     "dev": "nodemon ./dist/index",
-    "start": "node ./dist/index"
+    "start": "node ./dist/index",
+    "postinstall": "tsc"
   },
   "author": "Harshit Ramolia",
   "license": "ISC",
+  "engines": {
+    "node": "15.4.0"
+  },
   "dependencies": {
     "@typegoose/typegoose": "^7.6.1",
     "apollo-server-express": "^2.25.2",
