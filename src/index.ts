@@ -19,7 +19,7 @@ const main = async () => {
 
   app.use(express.json());
   app.use(cors({ origin: "http://localhost:3000", credentials: true }));
-  app.set('trustproxy', true)
+  app.set('trust proxy', true)
   // if (!IS_PROD) {
   //   app.use(
   //     session({
