@@ -21,7 +21,7 @@ const main = async () => {
     const app = express_1.default();
     app.use(express_1.default.json());
     app.use(cors_1.default({ origin: "http://localhost:3000", credentials: true }));
-    if (constants_1.IS_PROD) {
+    if (!constants_1.IS_PROD) {
         app.use(express_session_1.default({
             secret: process.env.SESSION_SECRET || "secret",
             name: constants_1.COOKIE_NAME,

@@ -19,7 +19,7 @@ const main = async () => {
 
   app.use(express.json());
   app.use(cors({ origin: "http://localhost:3000", credentials: true }));
-  if (IS_PROD) {
+  if (!IS_PROD) {
     app.use(
       session({
         secret: process.env.SESSION_SECRET || "secret",
