@@ -4,7 +4,7 @@ import "./config/mongoose";
 import cors from "cors";
 import session from "express-session";
 import { buildSchema, NonEmptyArray } from "type-graphql";
-import { COOKIE_MAX_AGE, COOKIE_NAME, IS_PROD } from "./config/constants";
+import { COOKIE_MAX_AGE, COOKIE_NAME} from "./config/constants";
 import { Resolvers } from "./resolvers/index";
 import "./util/dotenv";
 import { MyContext } from "./types";
@@ -19,23 +19,23 @@ const main = async () => {
 
   app.use(express.json());
   app.use(cors({ origin: "http://localhost:3000", credentials: true }));
-  if (!IS_PROD) {
-    app.use(
-      session({
-        secret: process.env.SESSION_SECRET || "secret",
-        name: COOKIE_NAME,
-        resave: false,
-        saveUninitialized: false,
-        rolling: true,
-        cookie: {
-          sameSite: "lax",
-          httpOnly: true,
-          maxAge: COOKIE_MAX_AGE,
-          secure: IS_PROD,
-        },
-      })
-    );
-  } else {
+  // if (!IS_PROD) {
+  //   app.use(
+  //     session({
+  //       secret: process.env.SESSION_SECRET || "secret",
+  //       name: COOKIE_NAME,
+  //       resave: false,
+  //       saveUninitialized: false,
+  //       rolling: true,
+  //       cookie: {
+  //         sameSite: "lax",
+  //         httpOnly: true,
+  //         maxAge: COOKIE_MAX_AGE,
+  //         secure: IS_PROD,
+  //       },
+  //     })
+  //   );
+  // } else {
     const MongoDBStore = MongoSessionStore(session);
     const store = new MongoDBStore({
       uri: process.env.MONGO_URL || "",
@@ -66,7 +66,7 @@ const main = async () => {
         rolling: true,
       })
     );
-  }
+  // }
   app.use(routes);
 
   const apolloServer = new ApolloServer({
