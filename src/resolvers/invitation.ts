@@ -26,20 +26,6 @@ export class InvitationResolver {
     }
   }
 
-  @FieldResolver()
-  async host(@Root() invitationInstance: InvitationClass) {
-    return await UserModel.findOne({
-      _id: invitationInstance._doc.host,
-    }).exec();
-  }
-
-  @FieldResolver()
-  async friend(@Root() invitationInstance: InvitationClass) {
-    return await UserModel.findOne({
-      _id: invitationInstance._doc.friend,
-    }).exec();
-  }
-
   @Mutation(() => Boolean)
   async cancelInvitation(@Ctx() { req }: MyContext) {
     if (!req.session.user?.id) {
@@ -126,5 +112,19 @@ export class InvitationResolver {
     @Arg("id") id: string
   ): InvitationClass {
     return Invitation;
+  }
+
+  @FieldResolver()
+  async host(@Root() invitationInstance: InvitationClass) {
+    return await UserModel.findOne({
+      _id: invitationInstance._doc.host,
+    }).exec();
+  }
+
+  @FieldResolver()
+  async friend(@Root() invitationInstance: InvitationClass) {
+    return await UserModel.findOne({
+      _id: invitationInstance._doc.friend,
+    }).exec();
   }
 }

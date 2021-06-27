@@ -14,9 +14,7 @@ export class UserClass extends TimeStamps {
   updatedAt: Date;
 
   @Field({ nullable: true })
-  @prop({
-    minlength: 3,
-  })
+  @prop()
   public username?: string;
 
   @Field({ nullable: true })

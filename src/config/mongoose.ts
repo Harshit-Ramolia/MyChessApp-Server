@@ -11,9 +11,10 @@ let options = {
   useCreateIndex: true,
 };
 
-mongoose.set("debug", function (coll, method, query, doc, options) {
-  console.log("DEBUG MONGO: ", coll, method, query, doc, options);
-});
+// For debug only
+// mongoose.set("debug", function (coll, method, query, doc, options) {
+//   console.log("DEBUG MONGO: ", coll, method, query, doc, options);
+// });
 
 mongoose.connect(process.env.MONGO_URL || "", options);
 

@@ -1,7 +1,6 @@
-import { prop, getModelForClass, Ref } from "@typegoose/typegoose";
+import { prop, getModelForClass } from "@typegoose/typegoose";
 import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
 import { Field, ObjectType } from "type-graphql";
-import { ChessClass } from "./chess";
 
 @ObjectType()
 export class PositionClass extends TimeStamps {

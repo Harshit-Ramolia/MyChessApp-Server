@@ -15,9 +15,8 @@ import {
 import "reflect-metadata";
 import { MyContext } from "../types";
 import { ChessClass, ChessModel } from "../models/chess";
-import { FieldError } from "./FieldError";
+import { FieldError } from "./FieldErrorType";
 import { UserModel } from "../models/user";
-import { ShortMove } from "chess.js";
 import { PositionClass, PositionModel } from "../models/position";
 
 @ObjectType()
@@ -96,22 +95,10 @@ export class ChessResolver {
     return true;
   }
 
-  @Subscription({
-    topics: "move",
-    filter: ({ payload, args }) => {
-      return payload.id.toString() == args.id;
-    },
-    nullable: true,
-  })
-  move(@Root() movePayload: MovePayload, @Arg("id") id: string): string {
-    return movePayload.move;
-  }
-
   @Mutation(() => Boolean)
   async endGame(
     @Arg("chessID") chessID: string,
     @PubSub() pubSub: PubSubEngine,
-    @Ctx() { req }: MyContext
   ) {
     try {
       let chess: ChessClass = await ChessModel.findOneAndUpdate(
@@ -138,6 +125,17 @@ export class ChessResolver {
       console.log(error);
       return false;
     }
+  }
+
+  @Subscription({
+    topics: "move",
+    filter: ({ payload, args }) => {
+      return payload.id.toString() == args.id;
+    },
+    nullable: true,
+  })
+  move(@Root() movePayload: MovePayload, @Arg("id") id: string): string {
+    return movePayload.move;
   }
 
   @FieldResolver()

@@ -41,10 +41,10 @@ const main = async () => {
       validate: false,
     }),
     subscriptions: {
-      onConnect: (connectionParams, webSocket, context) => {
+      onConnect: () => {
         console.log("Connected!");
       },
-      onDisconnect: (webSocket, context) => {
+      onDisconnect: () => {
         console.log("Disconnected!");
       },
     },

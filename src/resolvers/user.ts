@@ -13,7 +13,7 @@ import {
 import "reflect-metadata";
 import { UserModel, UserClass } from "../models/user";
 import { MyContext } from "../types";
-import { FieldError } from "./FieldError";
+import { FieldError } from "./FieldErrorType";
 import googleVerification from "../util/googleVerification";
 import findOrCreate from "../util/findOrCreate";
 import { COOKIE_NAME } from "../config/constants";
@@ -28,15 +28,6 @@ class UserResponse {
 
   @Field(() => UserClass, { nullable: true })
   user?: UserClass;
-}
-
-@ObjectType()
-class GameResponse {
-  @Field(() => [FieldError], { nullable: true })
-  errors?: FieldError[];
-
-  @Field(() => UserClass, { nullable: true })
-  game?: string;
 }
 
 @Resolver()
@@ -70,6 +61,18 @@ export class UserResolver {
       }).exec();
       return user.gameStatus;
     }
+  }
+
+  @Query(() => ChessClass, { nullable: true })
+  async currentGame(@Ctx() { req }: MyContext) {
+    if (!req.session.user?.id) return null;
+    const user: UserClass = await UserModel.findOne({
+      _id: req.session.user.id,
+    }).exec();
+    if (!user || !user.currentGame) return null;
+    let currentGame = await ChessModel.findOne({ _id: user.currentGame });
+    if (!currentGame) return null;
+    return currentGame;
   }
 
   @Mutation(() => UserResponse)
@@ -117,18 +120,6 @@ export class UserResolver {
         resolve(true);
       })
     );
-  }
-
-  @Query(() => ChessClass, { nullable: true })
-  async currentGame(@Ctx() { req }: MyContext) {
-    if (!req.session.user?.id) return null;
-    const user: UserClass = await UserModel.findOne({
-      _id: req.session.user.id,
-    }).exec();
-    if (!user || !user.currentGame) return null;
-    let currentGame = await ChessModel.findOne({ _id: user.currentGame });
-    if (!currentGame) return null;
-    return currentGame;
   }
 
   @Mutation(() => UserResponse)
@@ -187,7 +178,6 @@ export class UserResolver {
 
   @Mutation(() => Number)
   async invalidateQuery(
-    @Arg("GameStatus") GameStatus: 0 | 1 | 2 | 3,
     @Ctx() { req }: MyContext
   ) {
     if (!req.session.user?.id) return -1;
