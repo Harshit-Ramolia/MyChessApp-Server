@@ -1,10 +1,11 @@
-import express from "express";
-import routes from "./routes";
+import express, { Request, Response } from "express";
+import path from "path";
+// import routes from "./routes";
 import "./config/mongoose";
 import cors from "cors";
 import session from "express-session";
 import { buildSchema, NonEmptyArray } from "type-graphql";
-import { COOKIE_MAX_AGE, COOKIE_NAME, IS_PROD} from "./config/constants";
+import { COOKIE_MAX_AGE, COOKIE_NAME, IS_PROD } from "./config/constants";
 import { Resolvers } from "./resolvers/index";
 import "./util/dotenv";
 import { MyContext } from "./types";
@@ -19,7 +20,7 @@ const main = async () => {
 
   app.use(express.json());
   app.use(cors({ origin: "http://localhost:3000", credentials: true }));
-  app.set('trust proxy', true)
+  app.set("trust proxy", true);
   if (!IS_PROD) {
     app.use(
       session({
@@ -68,7 +69,6 @@ const main = async () => {
       })
     );
   }
-  app.use(routes);
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
@@ -83,6 +83,7 @@ const main = async () => {
         console.log("Disconnected!");
       },
     },
+
     context: ({ req, res }: MyContext) => ({
       req,
       res,
@@ -95,6 +96,12 @@ const main = async () => {
   });
 
   await apolloServer.start();
+  app.use(express.static('public'));
+
+  app.get("*", (_req: Request, res: Response) => {
+    res.sendFile(path.resolve(__dirname, "../public", "index.html"));
+  });
+  // app.use(routes);
 
   apolloServer.applyMiddleware({
     app,
