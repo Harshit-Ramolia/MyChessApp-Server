@@ -1,6 +1,5 @@
 import express, { Request, Response } from "express";
 import path from "path";
-// import routes from "./routes";
 import "./config/mongoose";
 import cors from "cors";
 import session from "express-session";
