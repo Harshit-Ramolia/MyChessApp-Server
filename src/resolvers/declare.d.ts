@@ -6,3 +6,11 @@ declare module "express-session" {
     user: MySession;
   }
 }
+
+declare global {
+  namespace Express {
+    interface Session {
+      user?: MySession
+    }
+  }
+}
