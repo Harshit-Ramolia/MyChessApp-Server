@@ -1,6 +1,6 @@
 # This is backend repository for Multiplayer Online Chess Game (MERN Stack)
 
-[![Link to Demo Video](images/Youtube.png)](https://www.youtube.com/watch?v=zy6WB7diuQk)
+[![Link to Demo Video](images/Youtube.png =640x480)](https://www.youtube.com/watch?v=zy6WB7diuQk)
 <!-- <iframe
     width="640"
     height="480"
